@@ -89,6 +89,13 @@ In multi user mode the service runs as root, so that it can write as the
 recipient of the files, and `MOJO_TMPDIR` must point to an empty directory
 with mode 0777.
 
+`US_NO_USERDB=0|1` lets multi user mode run when the recipients are not
+known on the upload host, for example because the sandboxes come from a file
+server mount. The service then needs no root rights: an upload for
+`$USERNAME` is accepted when `$US_ROOT/$USERNAME/INBOX` is a directory (not a
+symlink) that the service user can write to. The upload page shows the user
+name instead of the full name.
+
 `US_EMAILMODE=0|1` asks the sender for an email address and stores the
 uploads in a subdirectory named after it.
 
