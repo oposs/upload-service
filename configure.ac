@@ -14,7 +14,7 @@ AM_MAINTAINER_MODE
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-AC_PREFIX_DEFAULT(/opt/$PACKAGE_NAME-$PACKAGE_VERSION)
+AC_PREFIX_DEFAULT(/opt/$PACKAGE_NAME)
 
 AC_ARG_VAR(PERL,   [Path to local perl binary])
 AC_PATH_PROG(PERL, perl, no)
@@ -26,7 +26,7 @@ if test -x "$WGET"; then
     URL_CAT="$WGET -O -"
 else
     if test -x "$CURL"; then
-        URL_CAT="$CURL --location --insecure"
+        URL_CAT="$CURL --fail --location"
     fi
 fi
 
