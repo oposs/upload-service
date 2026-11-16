@@ -16,13 +16,13 @@ RUN set -eu; \
     *" debian "*|*" ubuntu "*) \
         apt-get update; \
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            autoconf automake make perl curl ca-certificates gzip tar unzip gcc libc6-dev; \
+            autoconf automake make perl curl ca-certificates gzip tar unzip gcc libc6-dev libcrypt-dev; \
         rm -rf /var/lib/apt/lists/* ;; \
     *" rhel "*|*" fedora "*|*" centos "*) \
         dnf install -y autoconf automake make perl perl-devel curl gzip tar unzip gcc; \
         dnf clean all ;; \
     *" alpine "*) \
         apk add --no-cache autoconf automake make perl perl-dev perl-utils build-base \
-            curl ca-certificates gzip tar unzip ;; \
+            curl wget perl-io-socket-ssl ca-certificates gzip tar unzip ;; \
     *) echo "Containerfile: no package list for ${ID}" >&2; exit 1 ;; \
     esac
