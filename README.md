@@ -1,71 +1,108 @@
 upload-service
 ==============
 
-A File-Upload Web Application capable of dealing with *LARGE* files. The
-backend is written in Perl using http://mojolicious.org, the frontend
-leverages http://github.com/23/resumable.js
+[![CI](https://github.com/oposs/upload-service/actions/workflows/ci.yml/badge.svg)](https://github.com/oposs/upload-service/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/oposs/upload-service)](https://github.com/oposs/upload-service/releases/latest)
 
-installation
-------------
-Use the classic ./configure; make install approach.
+A web application for uploading *large* files. The browser sends each file
+in resumable chunks (https://github.com/23/resumable.js), and the backend,
+written in Perl with https://mojolicious.org, stores it in an INBOX folder.
 
-Once installed you will find a htdoc directory in your installation
-target.
+![The upload page](docs/upload-page.png)
 
-Copy this directory into your webserver and configure the webserver to
-execute fcgi (fastcgi) scripts. Note that in the htdocs directory
-there is also a .htaccess file.
+Install
+-------
 
-Since the file-upload service is based on Mojolicious, you can use any of
-the modes of operation supported by Mojolicious.
+The packages install the service under `/opt/upload-service`, with the
+Mojolicious it needs bundled. An example systemd unit and start script are in
+`/usr/share/doc/upload-service/examples/`.
 
-configuration
+Debian and Ubuntu:
+
+```sh
+sudo install -d -m 0755 /etc/apt/keyrings
+sudo curl -fsSL -o /etc/apt/keyrings/gitea-oposs.asc https://gitea.oetiker.ch/api/packages/oposs/debian/repository.key
+echo "deb [signed-by=/etc/apt/keyrings/gitea-oposs.asc] https://gitea.oetiker.ch/api/packages/oposs/debian $(. /etc/os-release && echo $VERSION_CODENAME) main" | sudo tee /etc/apt/sources.list.d/oposs.list
+sudo apt update && sudo apt install upload-service
+```
+
+AlmaLinux and Fedora (`el9`, `el10` or `fc45`, after the release of the
+system):
+
+```sh
+sudo curl -fsSL -o /etc/yum.repos.d/oposs.repo https://gitea.oetiker.ch/api/packages/oposs/rpm/el10.repo
+sudo dnf install upload-service
+```
+
+Alpine (`v3.23` or `v3.24`, after the release of the system):
+
+```sh
+cd /etc/apk/keys && sudo curl -fJO https://gitea.oetiker.ch/api/packages/oposs/alpine/key
+echo "https://gitea.oetiker.ch/api/packages/oposs/alpine/v3.24/main" | sudo tee -a /etc/apk/repositories
+sudo apk update && sudo apk add upload-service
+```
+
+From source: download the tarball from
+https://github.com/oposs/upload-service/releases/latest, then
+
+```sh
+./configure --prefix=/opt/upload-service
+make
+make install
+```
+
+`make` downloads the current Mojolicious from CPAN into `thirdparty/`, so it
+needs perl, curl or wget, unzip, and a C compiler for the indexing tools. From
+a git checkout, run `./bootstrap` first.
+
+Running
+-------
+
+`bin/us.pl` starts the Mojolicious application, for example
+
+```sh
+/opt/upload-service/bin/us.pl prefork --listen 'http://*:9873'
+```
+
+Put it behind a web server that terminates TLS, or let it listen on
+`https://` itself; that needs IO::Socket::SSL from the distribution
+(`libio-socket-ssl-perl`, `perl-IO-Socket-SSL`).
+
+Configuration
 -------------
 
-The upload service gets is configured via several environement variables.
+The service is configured through environment variables.
 
-Set US_ROOT to define where the uploaded files should end up
+`US_ROOT=/path` is where the uploaded files end up.
 
- US_ROOT=/path
+`US_SINGLEUSER=0|1` selects the mode. In single user mode the uploads go
+straight to `$US_ROOT`, and the upload page is
 
-The system has two modes of operatation. Single user mode and multi user mode
+    https://your-site/
 
- US_SINGLEUSER=0|1
+In multi user mode the uploads go to `$US_ROOT/$USERNAME/INBOX`, and the
+upload page is
 
-in single user mode the uploads go straight to $US_ROOT in multi user mode the
-uploads go to $US_ROOT/$USERNAME/INBOX
+    https://your-site/USERNAME/
 
-in multi user mode the url for upload is expected to contain the $USERNAME
-and the script must run as root (use sudo) so that it can suid to the
-recipient of the files.
-
-Ask the user to provide en email address, and store the uploads in
-a subdirectory with the email address name.
-
-  US_EMAILMODE=0|1
-
-In single user mode you get
-
- http://your-site/script-url/
-
-In multi-user mode you get
-
- http://your-site/script-url/USERNAME/
-
-In multi user mode, the MOJO_TMPDIR must point to an empty directory
+In multi user mode the service runs as root, so that it can write as the
+recipient of the files, and `MOJO_TMPDIR` must point to an empty directory
 with mode 0777.
 
-If you want to hand out 'individual' upload urls, you can enable tag mode
+`US_EMAILMODE=0|1` asks the sender for an email address and stores the
+uploads in a subdirectory named after it.
 
- US_TAGMODE=1
+`US_TAGMODE=0|1` hands out individual upload addresses:
 
-In tag mode, the upload url will look like this:
+    https://your-site/TAG
 
- http://your-site/script-url/TAG
+The tag is made of `[0-9a-z]+`, and the names of the uploaded files start
+with it.
 
-the tag must be made up from [0-9a-z]+
+`US_SECRET_FILE=/path` names a file that holds the session secret. Without
+it, Mojolicious signs the session cookie with the application name, which
+anyone can guess. Create it once:
 
-Once the upload is complete the name of the uploaded file(s) will start with the given tag.
-
-Enjoy!
-tobi
+```sh
+umask 077; head -c 48 /dev/urandom | base64 -w0 > /path/upload-service-secret
+```

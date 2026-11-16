@@ -1,0 +1,73 @@
+# The packages of upload-service, built by ri-release-distro-packages from
+# make install DESTDIR into the stage. The piece fills in every dollar-brace
+# name before nfpm reads this file; write none in a comment.
+#
+# The application and the Mojolicious it bundles live in /opt/upload-service.
+# The package is pure Perl and only needs the distribution's perl. The
+# service runs under a unit of the host's own making; the example unit and
+# run.sh are installed under the documentation.
+name: upload-service
+arch: "${ARCH}"
+platform: linux
+version: "${VERSION}"
+release: "${PKG_RELEASE}"
+mtime: "${MTIME}"
+section: web
+priority: optional
+maintainer: Tobias Oetiker <tobi@oetiker.ch>
+license: GPL-3.0-or-later
+homepage: https://github.com/oposs/upload-service
+description: |
+  Web application for uploading large files
+  A Mojolicious web application that receives large files through the
+  browser in resumable chunks and stores them in an INBOX folder, in single
+  user or multi user mode.
+depends:
+  - perl
+contents:
+  - src: ${STAGE}/opt/upload-service
+    dst: /opt/upload-service
+    type: tree
+  - src: ${STAGE}/opt/upload-service/bin/run.sh
+    dst: /usr/share/doc/upload-service/examples/run.sh
+    file_info:
+      mode: 0644
+  - src: setup/upload-service.service
+    dst: /usr/share/doc/upload-service/examples/upload-service.service
+    file_info:
+      mode: 0644
+  - src: README.md
+    dst: /usr/share/doc/upload-service/README.md
+    file_info:
+      mode: 0644
+  - src: CHANGES.md
+    dst: /usr/share/doc/upload-service/CHANGES.md
+    file_info:
+      mode: 0644
+  - src: LICENSE
+    dst: /usr/share/doc/upload-service/copyright
+    packager: deb
+    file_info:
+      mode: 0644
+  - src: LICENSE
+    dst: /usr/share/doc/upload-service/LICENSE
+    packager: rpm
+    type: doc
+    file_info:
+      mode: 0644
+  - src: LICENSE
+    dst: /usr/share/doc/upload-service/LICENSE
+    packager: apk
+    file_info:
+      mode: 0644
+overrides:
+  deb:
+    # Only needed when the service itself listens on https.
+    recommends:
+      - libio-socket-ssl-perl
+  rpm:
+    recommends:
+      - perl-IO-Socket-SSL
+  apk:
+    recommends:
+      - perl-io-socket-ssl
