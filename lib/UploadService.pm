@@ -118,6 +118,7 @@ sub startup {
         my $c = shift;
         return undef if $ENV{US_SINGLEUSER};
         my $user = $c->stash('user') // return undef;
+        return $user if $ENV{US_NO_USERDB};
         my $gecos = (getpwnam($user))[6];
         my ($name) = split /,/, ($gecos // '');
         return (defined $name and length $name) ? $name : $user;
@@ -159,17 +160,21 @@ sub startup {
 
             $self->stash(root=>$root);
 
-            my $uid = getpwnam($username);
-            if (not $uid){
-                return reject($self, 403, 'unknown user', $username);
-            }
-            # lets see if  we can do a bit of user switching
-            if ($< == 0 and $> != $uid ){
-                # switch uid
-                $> = 0;
-                $> = $uid;
-                if ($> != $uid){
-                    return reject($self, 403, 'access denied: '.$!, $username);
+            # US_NO_USERDB: the recipients are not known on this host (e.g.
+            # the sandboxes are an SMB mount); the INBOX check below decides.
+            if (not $ENV{US_NO_USERDB}){
+                my $uid = getpwnam($username);
+                if (not $uid){
+                    return reject($self, 403, 'unknown user', $username);
+                }
+                # lets see if  we can do a bit of user switching
+                if ($< == 0 and $> != $uid ){
+                    # switch uid
+                    $> = 0;
+                    $> = $uid;
+                    if ($> != $uid){
+                        return reject($self, 403, 'access denied: '.$!, $username);
+                    }
                 }
             }
 
