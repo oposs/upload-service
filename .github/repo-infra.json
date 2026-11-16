@@ -8,6 +8,7 @@
       "verify": "^$VERSION$"
     }
   ],
+  "prepare": "./bootstrap && ./configure && make -C thirdparty CPAN/touch",
   "release_assets": [
     "upload-service-*.tar.gz",
     "upload-service_*_amd64.deb",
