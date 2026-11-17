@@ -5,8 +5,9 @@
 # ./configure, make, make check and make install DESTDIR=/stage in it, with
 # the checkout at /src. make downloads App::cpanminus and the modules named in
 # PERL_MODULES from CPAN, so the image needs a downloader and the toolchain
-# those modules build with. The image is built without a context: it names
-# packages and nothing else.
+# those modules build with. On the rpm releases the downloader is named by
+# its path: AlmaLinux 9 ships curl-minimal, which conflicts with curl. The
+# image is built without a context: it names packages and nothing else.
 ARG BASE=docker.io/library/debian:13
 FROM ${BASE} AS build-deps
 
@@ -19,7 +20,7 @@ RUN set -eu; \
             autoconf automake make perl curl ca-certificates gzip tar unzip gcc libc6-dev libcrypt-dev; \
         rm -rf /var/lib/apt/lists/* ;; \
     *" rhel "*|*" fedora "*|*" centos "*) \
-        dnf install -y autoconf automake make perl perl-devel curl gzip tar unzip gcc; \
+        dnf install -y autoconf automake make perl perl-devel /usr/bin/curl gzip tar unzip gcc; \
         dnf clean all ;; \
     *" alpine "*) \
         apk add --no-cache autoconf automake make perl perl-dev perl-utils build-base \
