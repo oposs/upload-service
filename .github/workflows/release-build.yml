@@ -32,3 +32,10 @@ jobs:
     with:
       version: ${{ inputs.version }}
       ref: ${{ inputs.ref }}
+      # Every release but Alpine: nfpm 2.47.0 in repo-infra v2 builds apk
+      # packages apk-tools refuses (goreleaser/nfpm#1112). Back to all
+      # releases, and the apk lines in release_assets, once
+      # oposs/repo-infra#169 is released.
+      distributions: >-
+        debian-12 debian-13 ubuntu-22.04 ubuntu-24.04 ubuntu-26.04
+        almalinux-9 almalinux-10 fedora
