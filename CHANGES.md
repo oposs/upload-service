@@ -12,6 +12,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### New
+
+### Changed
+
+### Fixed
+
+## 0.6.0 - 2026-11-17
+### New
 - Each release ships `.deb`, `.rpm` and `.apk` packages for Debian 12 and 13, Ubuntu 22.04, 24.04 and 26.04, AlmaLinux 9 and 10, Fedora and Alpine 3.23 and 3.24, published to the package registry at gitea.oetiker.ch (owner `oposs`), and a source tarball. The package installs the service under `/opt/upload-service` and puts an example systemd unit under `/usr/share/doc/upload-service/examples/`.
 - `US_NO_USERDB=1` lets multi user mode run as an ordinary user on a host that does not know the recipients: an upload is accepted when the recipient's INBOX folder exists and is writable. The upload page then shows the user name instead of the full name.
 
